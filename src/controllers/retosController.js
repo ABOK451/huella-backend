@@ -117,22 +117,44 @@ export const completarReto = async (req, res) => {
   try {
     const { retoUsuarioId } = req.params;
     const usuarioId = req.user.id;
-    const { notas } = req.body;
+
+    // req.body puede venir vacío en multipart, así que validamos:
+    const notas = req.body.notas || null;
+
+    // Si envías un JSON string con 'datosExtra'
+    let datosExtra = {};
+    if (req.body.datosExtra) {
+      try {
+        datosExtra = JSON.parse(req.body.datosExtra);
+      } catch (e) {
+        console.warn('Error parseando datosExtra:', e);
+      }
+    }
 
     const retoUsuario = await RetoUsuario.findOne({ where: { id: retoUsuarioId, usuarioId } });
     if (!retoUsuario) return res.status(404).json({ error: 'Reto no encontrado' });
     if (retoUsuario.completado) return res.status(400).json({ error: 'Este reto ya fue completado' });
 
+    // ✅ Marcar reto como completado
     retoUsuario.completado = true;
     retoUsuario.fechaCompletado = new Date();
+
     if (notas) retoUsuario.notas = notas;
+
+    // Si quieres guardar evidencia, puedes hacerlo aquí
+    if (req.file) {
+      retoUsuario.evidencia = req.file.filename;
+    }
+
     await retoUsuario.save();
 
-    res.json({ mensaje: 'Reto completado exitosamente', reto: retoUsuario });
+    res.json({ mensaje: 'Reto completado exitosamente', reto: retoUsuario, datosExtra });
   } catch (error) {
+    console.error('Error completarReto:', error);
     res.status(500).json({ error: 'Error al completar reto', detalle: error.message });
   }
 };
+
 
 // Obtener historial de retos del usuario
 export const obtenerHistorialRetos = async (req, res) => {

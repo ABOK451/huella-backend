@@ -9,6 +9,8 @@ import {
 
 import authMiddleware from "../middlewares/verifyToken.js";
 import express from "express";
+import multer from "multer";
+const upload = multer({ dest: "uploads/" });
 const router = express.Router();
 
 // Rutas protegidas
@@ -17,6 +19,6 @@ router.get("/categoria/:categoria", authMiddleware, obtenerRetosPorCategoria);
 router.get("/diario", authMiddleware, obtenerRetoDiario);
 router.get("/historial", authMiddleware, obtenerHistorialRetos);
 router.get("/estadisticas", authMiddleware, obtenerEstadisticas);
-router.put("/:id/completar", authMiddleware, completarReto);
+router.put("/:retoUsuarioId/completar", authMiddleware, upload.single('evidencia'), completarReto);
 
 export default router;
