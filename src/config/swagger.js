@@ -1,5 +1,5 @@
-const swaggerJsdoc = require("swagger-jsdoc");
-const swaggerUi = require("swagger-ui-express");
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 
 const options = {
     definition: {
@@ -11,7 +11,7 @@ const options = {
         },
         servers: [{
             url: "http://localhost:4000",
-        }, ],
+        }],
         components: {
             securitySchemes: {
                 bearerAuth: {
@@ -24,6 +24,7 @@ const options = {
     },
     apis: ["./src/routes/*.js"],
 };
+
 const specs = swaggerJsdoc(options);
 
 function swaggerDocs(app) {
@@ -31,4 +32,4 @@ function swaggerDocs(app) {
     console.log("Swagger disponible en http://localhost:4000/api-docs");
 }
 
-module.exports = swaggerDocs;
+export default swaggerDocs;  // <- cambio aquí
