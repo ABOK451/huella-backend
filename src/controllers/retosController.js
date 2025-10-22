@@ -2,6 +2,7 @@ import { Op } from 'sequelize';
 import sequelize from '../config/db.js';
 import { Reto, RetoUsuario, User } from '../models/associations.js';
 
+
 // Obtener todos los retos activos
 export const obtenerRetos = async (req, res) => {
   try {
@@ -156,39 +157,77 @@ export const completarReto = async (req, res) => {
 };
 
 
-// Obtener historial de retos del usuario
 export const obtenerHistorialRetos = async (req, res) => {
   try {
     const usuarioId = req.user.id;
+    console.log('obtenerHistorialRetos - usuarioId:', usuarioId);
     const historial = await RetoUsuario.findAll({
-      where: { usuarioId },
-      include: [{ model: Reto }],
-      order: [['fechaAsignacion', 'DESC']],
-    });
-    res.json(historial);
+  where: { usuarioId },
+  include: [{ model: Reto, as: 'reto', attributes: { exclude: [] } }],
+  order: [['fechaAsignacion', 'DESC']],
+});
+
+console.log('DEBUG - historial raw:', JSON.stringify(historial, null, 2));
+
+
+
+
+    // Opcional: mapear solo los campos necesarios para el frontend
+    const historialFormateado = historial.map(r => ({
+      id: r.id,
+      completado: r.completado,
+      fechaAsignacion: r.fechaAsignacion,
+      fechaCompletado: r.fechaCompletado,
+      notas: r.notas,
+      reto: r.reto ? {
+        id: r.reto.id,
+        titulo: r.reto.titulo,
+        descripcion: r.reto.descripcion,
+        categoria: r.reto.categoria,
+        dificultad: r.reto.dificultad,
+        puntos: r.reto.puntos,
+        impacto_co2: r.reto.impacto_co2,
+        impacto_agua: r.reto.impacto_agua,
+        instrucciones: r.reto.instrucciones
+      } : {}
+    }));
+    
+    console.log('Historial obtenido:', historialFormateado.length, 'registros');
+    res.json(historialFormateado);
   } catch (error) {
+    console.error('Error al obtener historial:', error);
     res.status(500).json({ error: 'Error al obtener historial', detalle: error.message });
   }
 };
+
 
 // Obtener estadísticas de retos del usuario
 export const obtenerEstadisticas = async (req, res) => {
   try {
     const usuarioId = req.user.id;
+    console.log('obtenerEstadisticas - usuarioId:', usuarioId);
 
     const total = await RetoUsuario.count({ where: { usuarioId } });
     const completados = await RetoUsuario.count({ where: { usuarioId, completado: true } });
+    console.log('Total retos:', total, 'Completados:', completados);
 
-    const impactoData = await RetoUsuario.findAll({ where: { usuarioId, completado: true }, include: [Reto] });
+    const impactoData = await RetoUsuario.findAll({
+      where: { usuarioId, completado: true },
+      include: [{ model: Reto, as: 'reto' }] // ✅ Usar el alias correcto
+    });
+
 
     let totalCO2 = 0, totalAgua = 0, totalPuntos = 0;
     impactoData.forEach(r => {
-      if (r.Reto) {
-        totalCO2 += r.Reto.impacto_co2 || 0;
-        totalAgua += r.Reto.impacto_agua || 0;
-        totalPuntos += r.Reto.puntos || 0;
+      if (r.reto) {
+        totalCO2 += r.reto.impacto_co2 || 0;
+        totalAgua += r.reto.impacto_agua || 0;
+        totalPuntos += r.reto.puntos || 0;
       }
     });
+
+
+    console.log('Impacto acumulado - CO2:', totalCO2, 'Agua:', totalAgua, 'Puntos:', totalPuntos);
 
     res.json({
       total,
@@ -198,6 +237,8 @@ export const obtenerEstadisticas = async (req, res) => {
       impacto: { co2Ahorrado: totalCO2.toFixed(2), aguaAhorrada: totalAgua.toFixed(2), puntosGanados: totalPuntos },
     });
   } catch (error) {
+    console.error('Error al obtener estadísticas:', error);
     res.status(500).json({ error: 'Error al obtener estadísticas', detalle: error.message });
   }
 };
+

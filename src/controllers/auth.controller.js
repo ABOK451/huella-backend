@@ -9,9 +9,9 @@ dotenv.config();
 export const register = async (req, res) => {
   console.log("📥 [REGISTER] Datos recibidos:", req.body);
   try {
-    const { email, password } = req.body;
+    const { name, email, password } = req.body;
     
-    if (!email || !password) {
+    if (!name || !email || !password) {
       console.log("❌ [REGISTER] Faltan datos");
       return res.status(400).json({ message: "Faltan datos" });
     }
@@ -23,15 +23,23 @@ export const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    await User.create({ email, password: hashedPassword });
+    await User.create({ name, email, password: hashedPassword });
 
     console.log("✅ [REGISTER] Usuario creado:", email);
-    res.status(201).json({ message: "Usuario registrado correctamente" });
+    res.status(201).json({ 
+      message: "Usuario registrado correctamente",
+      user: {
+        id: userExists?.id ?? null, // opcional: puedes devolver id del usuario creado
+        name,
+        email
+      }
+    });
   } catch (error) {
     console.error("❌ [REGISTER] Error en el registro:", error);
     res.status(500).json({ message: "Error en el registro", error });
   }
 };
+
 
 // ✅ LOGIN
 export const login = async (req, res) => {
@@ -56,18 +64,18 @@ export const login = async (req, res) => {
     });
 
     console.log("✅ [LOGIN] Login exitoso:", email, "Token:", token);
-    res.json({ 
-  token,
-  user: {
-    id: user.id,
-    email: user.email
-    // cualquier otro dato que necesites
-  }
-});
 
+    res.json({ 
+      token,
+      user: {
+        id: user.id,
+        name: user.name, // <-- Aquí incluimos el nombre
+        email: user.email,
+      }
+    });
   } catch (error) {
-    console.error("❌ [LOGIN] Error en el login:", error);
-    res.status(500).json({ message: "Error en el inicio de sesión" });
+    console.error("❌ [LOGIN] Error:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
   }
 };
 
