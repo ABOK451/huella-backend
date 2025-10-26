@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  huella-backend:
+    build: .
+    container_name: huella-backend
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=huelladb
+    depends_on:
+      - db
+    networks:
+      - huella-network
+
+  db:
+    image: mysql:8.0
+    container_name: huella-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=huelladb
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - huella-network
+
+networks:
+  huella-network:
+    driver: bridge
+
+volumes:
+  db_data:
