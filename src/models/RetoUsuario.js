@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 import { User } from './user.model.js';
-import Reto from './reto.js';
+import Reto from './Reto.js';
 
 const RetoUsuario = sequelize.define('RetoUsuario', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
