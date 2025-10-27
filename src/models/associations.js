@@ -1,4 +1,4 @@
-import Reto from './reto.js';
+import Reto from './Reto.js';
 import RetoUsuario from './RetoUsuario.js';
 import { User } from './user.model.js';
 
