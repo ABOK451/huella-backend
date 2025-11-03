@@ -14,7 +14,7 @@ async function startServer() {
     app.listen(PORT, "0.0.0.0", () =>
       console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
     );
-    console.log(`🚀 Servidor corriendo en https://huella-backend-7qtr8-189-169-121-20.traefik.me`);
+    
   } catch (error) {
     console.error("❌ Error iniciando el servidor:", error);
     process.exit(1); // termina el proceso si hay error crítico
